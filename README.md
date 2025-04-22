@@ -1,5 +1,5 @@
 # NutriFit
-CCH DISPOSITIVOS MÓVEIS
+CCH DISPOSITIVOS MÓVEIS - NOMES: Leonardo Dall'Asta Krüger, Siluane Zancanaro 
 
 # DESCRIÇÃO
 O NutriFit será um aplicativo mobile voltado para acompanhamento nutricional e físico de usuários com foco em objetivos específicos como perda de peso, ganho de massa muscular e manutenção da saúde. O sistema integra funcionalidades que permitem o monitoramento diário da ingestão de nutrientes (como calorias, proteínas e água), além de oferecer sugestões de receitas alinhadas às metas definidas pelo usuário.

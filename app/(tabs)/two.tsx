@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, FlatList, Image, TouchableOpacity, Text } from 'react-native';
 
 const receitas = [
   {
@@ -22,21 +22,20 @@ const receitas = [
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
-      <View style={styles.header}>
-        <Image source={require('@/assets/images/nutrifit.png')} style={styles.logoImage} />
-        <Text style={styles.logoText}>NutriFit</Text>
-      </View>
+      <Image
+        source={require('@/assets/images/nutrifit.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-      {/* Campo de busca */}
+      <Text style={styles.title}>Receitas</Text>
+
       <TextInput style={styles.search} placeholder="Buscar receitas" />
 
-      {/* Botão Adicionar */}
       <TouchableOpacity style={styles.addButton}>
         <Text style={styles.addButtonText}>Adicionar Receita</Text>
       </TouchableOpacity>
 
-      {/* Lista de receitas */}
       <FlatList
         data={receitas}
         keyExtractor={(item) => item.id}
@@ -55,24 +54,21 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 24,
+    paddingTop: 60,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  logoImage: {
-    width: 10,
-    height: 10,
-    marginBottom: 10,
+  logo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
     alignSelf: 'center',
   },
-  logoText: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#009688',
+    marginBottom: 20,
+    alignSelf: 'flex-start',
   },
   search: {
     borderWidth: 1,

@@ -1,14 +1,53 @@
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, TextInput, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+const receitas = [
+  {
+    id: '1',
+    nome: 'Salada de Frango',
+    imagem: require('@/assets/images/salada.png'),
+  },
+  {
+    id: '2',
+    nome: 'Aveia com Morangos',
+    imagem: require('@/assets/images/aveia.png'),
+  },
+  {
+    id: '3',
+    nome: 'Omelete de Vegetais',
+    imagem: require('@/assets/images/omelete.png'),
+  },
+];
 
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/two.tsx" />
+      {/* Cabeçalho */}
+      <View style={styles.header}>
+        <Image source={require('@/assets/images/nutrifit.png')} style={styles.logoImage} />
+        <Text style={styles.logoText}>NutriFit</Text>
+      </View>
+
+      {/* Campo de busca */}
+      <TextInput style={styles.search} placeholder="Buscar receitas" />
+
+      {/* Botão Adicionar */}
+      <TouchableOpacity style={styles.addButton}>
+        <Text style={styles.addButtonText}>Adicionar Receita</Text>
+      </TouchableOpacity>
+
+      {/* Lista de receitas */}
+      <FlatList
+        data={receitas}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Image source={item.imagem} style={styles.image} />
+            <Text style={styles.cardText}>{item.nome}</Text>
+            <View style={styles.progressBar}></View>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -16,16 +55,66 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 20,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  logoImage: {
+    width: 10,
+    height: 10,
+    marginBottom: 10,
+    alignSelf: 'center',
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#009688',
+  },
+  search: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  addButton: {
+    backgroundColor: '#009688',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  image: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  cardText: {
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  progressBar: {
+    width: 60,
+    height: 8,
+    backgroundColor: '#a0e7e5',
+    borderRadius: 4,
   },
 });

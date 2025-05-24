@@ -11,7 +11,7 @@ As telas que anteriormente foram apresentadas apenas como protótipos agora fora
 
 Entre as funcionalidades implementadas:
 
-- Tela de **receitas** parcialmente concluída, com possibilidade de **adicionar** e **buscar**.
+- Tela de **receitas** parcialmente concluída, com possibilidade de **adicionar**, **buscar** e **remover**.
 - Tela de **metas** funcional, permitindo **adicionar** e **excluir** metas (atualmente com progressos aleatórios, para demonstração).
 - Tela de **perfil** criada.
 - Tela de **treinos** criada.

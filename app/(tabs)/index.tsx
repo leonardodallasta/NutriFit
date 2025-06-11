@@ -1,6 +1,39 @@
-import { StyleSheet, TextInput, TouchableOpacity, Text, View, Image } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TextInput, TouchableOpacity, Text, View, Image, Alert } from 'react-native';
+import { Link } from 'expo-router';
+import auth from '@react-native-firebase/auth';
 
 export default function TabOneScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  /**
+   * Função para lidar com a tentativa de login do usuário.
+   */
+  const handleLogin = () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Por favor, preencha os campos de e-mail e senha.');
+      return;
+    }
+
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        console.log('Usuário logado com sucesso:', userCredential.user.email);
+        Alert.alert('Login com Sucesso!', `Bem-vindo de volta, ${userCredential.user.email}`);
+        // router.replace('/home'); 
+      })
+      .catch(error => {
+        let errorMessage = 'Ocorreu um erro desconhecido.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          errorMessage = 'E-mail ou senha inválidos.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = 'O formato do e-mail é inválido.';
+        }
+        Alert.alert('Erro no Login', errorMessage);
+      });
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -10,22 +43,28 @@ export default function TabOneScreen() {
       />
 
       <View style={styles.form}>
-        <Text>Email</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput 
           style={styles.input} 
           placeholder="Digite seu email" 
-          placeholderTextColor="#555" 
+          placeholderTextColor="#555"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
-        <Text>Senha</Text>
+        <Text style={styles.label}>Senha</Text>
         <TextInput 
           style={styles.input} 
           placeholder="Digite sua senha" 
           secureTextEntry 
           placeholderTextColor="#555" 
+          value={password}
+          onChangeText={setPassword}
         />
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
 
@@ -34,9 +73,12 @@ export default function TabOneScreen() {
             <Text style={styles.linkText}>Esqueceu a senha?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity>
-            <Text style={styles.linkText}>Cadastrar</Text>
-          </TouchableOpacity>
+          {/* O botão de cadastro agora é um Link que leva para a rota /register */}
+          <Link href="./register" asChild>
+            <TouchableOpacity>
+              <Text style={styles.linkText}>Cadastrar</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
       </View>
     </View>
@@ -66,12 +108,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
+  label: {
+    marginBottom: 4,
+    fontWeight: '500',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 6,
     padding: 10,
-    marginTop: 8,
     marginBottom: 16,
     backgroundColor: '#fff',
   },

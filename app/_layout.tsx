@@ -5,9 +5,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { NutriProvider } from './context/NutriContext';
-import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider } from './context/AuthContext';
+import { NutriProvider } from './context/NutriContext';
+import { DateProvider } from './context/DateContext';
+
+import { useColorScheme } from '@/components/useColorScheme';
 
 export {
   ErrorBoundary,
@@ -42,7 +44,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <NutriProvider>
-        <RootLayoutNav />
+        <DateProvider>
+          <RootLayoutNav />
+        </DateProvider>
       </NutriProvider>
     </AuthProvider>
   );
@@ -53,10 +57,15 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* Telas públicas */}
+        <Stack.Screen name="index" />
+        <Stack.Screen name="register" />
+
+        {/* Grupo de telas protegidas */}
+        <Stack.Screen name="(tabs)" />
+        
+        {/* Sua tela de modal */}
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

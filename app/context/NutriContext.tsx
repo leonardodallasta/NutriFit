@@ -7,6 +7,7 @@ type Nutrientes = {
 
 type NutriContextType = {
   nutrientes: Nutrientes;
+  setNutrientes: React.Dispatch<React.SetStateAction<Nutrientes>>;
   adicionarNutrientes: (proteina: number, carboidrato: number) => void;
   removerNutrientes: (proteina: number, carboidrato: number) => void;
 };
@@ -31,7 +32,7 @@ export const NutriProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <NutriContext.Provider value={{ nutrientes, adicionarNutrientes, removerNutrientes }}>
+    <NutriContext.Provider value={{ nutrientes, setNutrientes, adicionarNutrientes, removerNutrientes }}>
       {children}
     </NutriContext.Provider>
   );

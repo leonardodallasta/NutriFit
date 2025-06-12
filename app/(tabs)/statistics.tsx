@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import React, { useState } from 'react';
-import { useNutri } from 'C:/Users/User/Downloads/NutriFit/app/context/NutriContext';
+import { useNutri } from '../context/NutriContext';
 
 export default function StatisticsScreen() {
   const [modalVisible, setModalVisible] = useState(false);

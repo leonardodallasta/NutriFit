@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { StyleSheet, TouchableOpacity, Modal, View, Text, LayoutAnimation, UIManager, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, Modal, View, Text, LayoutAnimation, UIManager, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Image } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Feather';
+import firestore from '@react-native-firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 type Meta = {
-  id: number;
+  id: string; 
   goal: string;
   progress: number;
   target: number;
@@ -19,52 +21,84 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function MetasScreen() {
-  const [metas, setMetas] = useState<Meta[]>([
-    { id: 1, goal: 'Perder peso', progress: 1, target: 7, unit: 'kg' }
-  ]);
+  const { user } = useAuth();
+  const [metas, setMetas] = useState<Meta[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const addMeta = (goal: string) => {
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const subscriber = firestore()
+      .collection('users')
+      .doc(user.uid)
+      .collection('metas')
+      .onSnapshot(querySnapshot => {
+        const userMetas: Meta[] = [];
+        querySnapshot.forEach(documentSnapshot => {
+          userMetas.push({
+            ...documentSnapshot.data(),
+            id: documentSnapshot.id,
+          } as Meta);
+        });
+        setMetas(userMetas);
+        setLoading(false);
+      }, error => {
+        console.error("Erro ao buscar metas: ", error);
+        setLoading(false);
+      });
+
+    return () => subscriber();
+  }, [user]);
+
+  const addMeta = async (goal: string) => {
+    if (!user) return;
     const alreadyExists = metas.some(meta => meta.goal === goal);
     if (alreadyExists) return;
 
-    const id = new Date().getTime();
     let target = 1;
     let unit = '';
 
     switch (goal) {
-      case 'Beber água':
-        target = 5;
-        unit = 'L';
-        break;
-      case 'Andar':
-        target = 10;
-        unit = 'km';
-        break;
-      case 'Correr':
-        target = 5;
-        unit = 'km';
-        break;
-      case 'Esteira':
-        target = 3;
-        unit = 'km';
-        break;
-      case 'Yoga':
-      case 'Meditar':
-      case 'Alongamento':
-        target = 30;
-        unit = 'min';
-        break;
+        case 'Beber água': target = 2; unit = 'L'; break;
+        case 'Andar': target = 5; unit = 'km'; break;
+        case 'Correr': target = 3; unit = 'km'; break;
+        case 'Esteira': target = 3; unit = 'km'; break;
+        case 'Yoga': case 'Meditar': case 'Alongamento': target = 30; unit = 'min'; break;
     }
-
+    
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setMetas([...metas, { id, goal, progress: Math.random() * target, target, unit }]);
+
+    try {
+      await firestore().collection('users').doc(user.uid).collection('metas').add({
+        goal,
+        progress: 0,
+        target,
+        unit,
+      });
+    } catch (error) {
+      console.error("Erro ao adicionar meta: ", error);
+      Alert.alert("Erro", "Não foi possível adicionar a meta.");
+    }
   };
 
-  const removeMeta = (metaId: number) => {
+  const removeMeta = async (metaId: string) => {
+    if (!user) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setMetas(metas.filter(meta => meta.id !== metaId));
+    try {
+      await firestore().collection('users').doc(user.uid).collection('metas').doc(metaId).delete();
+    } catch (error) {
+      console.error("Erro ao remover meta: ", error);
+      Alert.alert("Erro", "Não foi possível remover a meta.");
+    }
   };
+
+  if (loading) {
+      return <View style={styles.container}><ActivityIndicator size="large" color="#00A99D"/></View>
+  }
 
   return (
     <View style={styles.container}>
@@ -73,8 +107,7 @@ export default function MetasScreen() {
         style={styles.logo}
         resizeMode="contain"
       />
-
-      <Text style={styles.title}>Metas</Text>
+      <Text style={styles.title}>Minhas Metas</Text>
 
       <ScrollView style={styles.metasScroll} contentContainerStyle={{ paddingBottom: 20 }}>
         {metas.map(meta => (
@@ -85,15 +118,12 @@ export default function MetasScreen() {
                 <Icon name="trash-2" size={20} color="red" />
               </TouchableOpacity>
             </View>
-
             <Text style={styles.subTitle}>Progresso</Text>
-
             <ProgressBar
               progress={meta.progress / meta.target}
               color="#00A99D"
               style={styles.progressBar}
             />
-
             <Text style={styles.progressText}>
               {meta.progress.toFixed(1)} de {meta.target} {meta.unit}
             </Text>
@@ -129,7 +159,6 @@ export default function MetasScreen() {
                 );
               })}
             </ScrollView>
-
             <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
               <Text style={styles.cancelButtonText}>Fechar</Text>
             </TouchableOpacity>
@@ -146,6 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 60,
     backgroundColor: '#fff',
+    justifyContent: 'center'
   },
   logo: {
     width: 200,
@@ -162,6 +192,7 @@ const styles = StyleSheet.create({
   },
   metasScroll: {
     flex: 1,
+    width: '100%',
   },
   metaCard: {
     width: '100%',
@@ -203,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginTop: 10,
+    width: '100%'
   },
   addButtonText: {
     color: '#fff',

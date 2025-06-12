@@ -14,7 +14,8 @@ type Meta = {
   unit: string;
 };
 
-const metasDisponiveis = ["Beber água", "Andar", "Correr", "Esteira", "Yoga", "Meditar", "Alongamento"];
+const getFormattedDate = (date: Date) => date.toISOString().slice(0, 10);
+const metasDisponiveis = ["Beber água", "Caminhada", "Correr", "Esteira", "Yoga", "Meditar", "Alongamento"];
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -25,17 +26,12 @@ export default function MetasScreen() {
   const [metas, setMetas] = useState<Meta[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [consumoAguaHoje, setConsumoAguaHoje] = useState(0);
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) { setLoading(false); return; }
 
-    const subscriber = firestore()
-      .collection('users')
-      .doc(user.uid)
-      .collection('metas')
+    const metasSubscriber = firestore().collection('users').doc(user.uid).collection('metas')
       .onSnapshot(querySnapshot => {
         const userMetas: Meta[] = [];
         querySnapshot.forEach(documentSnapshot => {
@@ -45,13 +41,26 @@ export default function MetasScreen() {
           } as Meta);
         });
         setMetas(userMetas);
-        setLoading(false);
+        if(loading) setLoading(false);
       }, error => {
         console.error("Erro ao buscar metas: ", error);
         setLoading(false);
       });
 
-    return () => subscriber();
+    const hoje = getFormattedDate(new Date());
+    const aguaSubscriber = firestore().collection('users').doc(user.uid).collection('diario').doc(hoje)
+      .onSnapshot(doc => {
+        if (doc.exists()) {
+          setConsumoAguaHoje(doc.data()?.consumoAgua || 0);
+        } else {
+          setConsumoAguaHoje(0);
+        }
+      });
+
+    return () => {
+      metasSubscriber();
+      aguaSubscriber();
+    };
   }, [user]);
 
   const addMeta = async (goal: string) => {
@@ -63,8 +72,8 @@ export default function MetasScreen() {
     let unit = '';
 
     switch (goal) {
-        case 'Beber água': target = 2; unit = 'L'; break;
-        case 'Andar': target = 5; unit = 'km'; break;
+        case 'Beber água': target = 2.5; unit = 'L'; break;
+        case 'Caminhada': target = 5; unit = 'km'; break;
         case 'Correr': target = 3; unit = 'km'; break;
         case 'Esteira': target = 3; unit = 'km'; break;
         case 'Yoga': case 'Meditar': case 'Alongamento': target = 30; unit = 'min'; break;
@@ -110,25 +119,30 @@ export default function MetasScreen() {
       <Text style={styles.title}>Minhas Metas</Text>
 
       <ScrollView style={styles.metasScroll} contentContainerStyle={{ paddingBottom: 20 }}>
-        {metas.map(meta => (
-          <View key={meta.id} style={styles.metaCard}>
-            <View style={styles.metaHeader}>
-              <Text style={styles.metaTitle}>{meta.goal}</Text>
-              <TouchableOpacity onPress={() => removeMeta(meta.id)}>
-                <Icon name="trash-2" size={20} color="red" />
-              </TouchableOpacity>
+        {metas.map(meta => {
+          const isMetaAgua = meta.goal === 'Beber água';
+          const progressoAtual = isMetaAgua ? (consumoAguaHoje / 1000) : meta.progress;
+
+          return (
+            <View key={meta.id} style={styles.metaCard}>
+              <View style={styles.metaHeader}>
+                <Text style={styles.metaTitle}>{meta.goal}</Text>
+                <TouchableOpacity onPress={() => removeMeta(meta.id)}>
+                  <Icon name="trash-2" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.subTitle}>Progresso</Text>
+              <ProgressBar
+                progress={meta.target > 0 ? progressoAtual / meta.target : 0}
+                color="#00A99D"
+                style={styles.progressBar}
+              />
+              <Text style={styles.progressText}>
+                {progressoAtual.toFixed(1)} de {meta.target} {meta.unit}
+              </Text>
             </View>
-            <Text style={styles.subTitle}>Progresso</Text>
-            <ProgressBar
-              progress={meta.progress / meta.target}
-              color="#00A99D"
-              style={styles.progressBar}
-            />
-            <Text style={styles.progressText}>
-              {meta.progress.toFixed(1)} de {meta.target} {meta.unit}
-            </Text>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
@@ -170,110 +184,23 @@ export default function MetasScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    backgroundColor: '#fff',
-    justifyContent: 'center'
-  },
-  logo: {
-    width: 200,
-    height: 100,
-    marginBottom: 20,
-    alignSelf: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#000',
-    textAlign: 'center',
-  },
-  metasScroll: {
-    flex: 1,
-    width: '100%',
-  },
-  metaCard: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 20,
-    backgroundColor: '#f9f9f9',
-  },
-  metaHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  metaTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  subTitle: {
-    fontSize: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    color: '#000',
-  },
-  progressBar: {
-    height: 10,
-    borderRadius: 5,
-    marginBottom: 8,
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  addButton: {
-    backgroundColor: '#00A99D',
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginTop: 10,
-    width: '100%'
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: 300,
-    maxHeight: 400,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-  },
-  metaOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  metaOptionSelected: {
-    opacity: 0.5,
-  },
-  metaOptionText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  cancelButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#ccc',
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontWeight: 'bold',
-    color: '#333',
-  },
+  container: { flex: 1, paddingHorizontal: 24, paddingTop: 60, backgroundColor: '#fff', justifyContent: 'center' },
+  logo: { width: 200, height: 100, marginBottom: 20, alignSelf: 'center' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, color: '#000', textAlign: 'center' },
+  metasScroll: { flex: 1, width: '100%' },
+  metaCard: { width: '100%', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 16, marginBottom: 20, backgroundColor: '#f9f9f9' },
+  metaHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  metaTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
+  subTitle: { fontSize: 16, marginTop: 12, marginBottom: 8, color: '#000' },
+  progressBar: { height: 10, borderRadius: 5, marginBottom: 8 },
+  progressText: { fontSize: 14, color: '#000' },
+  addButton: { backgroundColor: '#00A99D', padding: 12, borderRadius: 6, alignItems: 'center', marginTop: 10, width: '100%' },
+  addButtonText: { color: '#fff', fontWeight: 'bold' },
+  modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: 300, maxHeight: 400, padding: 20, backgroundColor: '#fff', borderRadius: 10 },
+  metaOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  metaOptionSelected: { opacity: 0.5 },
+  metaOptionText: { fontSize: 16, color: '#000' },
+  cancelButton: { marginTop: 10, padding: 10, backgroundColor: '#ccc', borderRadius: 6, alignItems: 'center' },
+  cancelButtonText: { fontWeight: 'bold', color: '#333' },
 });

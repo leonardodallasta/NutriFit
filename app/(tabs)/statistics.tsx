@@ -1,10 +1,14 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import React, { useState } from 'react';
+import { useNutri } from '../context/NutriContext';
 
 export default function StatisticsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [consumoAgua, setConsumoAgua] = useState(0);
   const [metaAgua, setMetaAgua] = useState(2500);
+
+  const { nutrientes } = useNutri();
+  const calorias = (nutrientes.proteina + nutrientes.carboidrato) * 4;
 
   const adicionarAgua = (quantidade: number) => {
     setConsumoAgua((prev) => Math.max(0, prev + quantidade));
@@ -27,9 +31,9 @@ export default function StatisticsScreen() {
 
       <View style={styles.card}>
         <StatItem label="Água" value={`${consumoAgua / 1000} / ${metaAgua / 1000}L`} progress={consumoAgua / metaAgua} color="#3b82f6" openModal={() => setModalVisible(true)} />
-        <StatItem label="Calorias" value="1820 / 2200" progress={0.83} color="#f97316" />
-        <StatItem label="Proteínas" value="120 / 150g" progress={0.8} color="#ec4899" />
-        <StatItem label="Carboidratos" value="200 / 250g" progress={0.8} color="#22c55e" />
+        <StatItem label="Calorias" value={`${calorias} / 2200 kcal`} progress={calorias / 2200} color="#f97316" />
+        <StatItem label="Proteínas" value={`${nutrientes.proteina} / 150g`} progress={nutrientes.proteina / 150} color="#ec4899" />
+        <StatItem label="Carboidratos" value={`${nutrientes.carboidrato} / 250g`} progress={nutrientes.carboidrato / 250} color="#22c55e" />
       </View>
 
       {/* Modal de controle de água */}
@@ -68,20 +72,29 @@ export default function StatisticsScreen() {
   );
 }
 
-function StatItem({ label, value, progress, color, openModal }: { label: string; value: string; progress: number; color: string; openModal?: () => void }) {
+function StatItem({
+  label,
+  value,
+  progress,
+  color,
+  openModal,
+}: {
+  label: string;
+  value: string;
+  progress: number;
+  color: string;
+  openModal?: () => void;
+}) {
   return (
     <View style={styles.statItem}>
       <View style={styles.statHeader}>
         <Text style={styles.statLabel}>{label}</Text>
         <View style={styles.icons}>
-          <TouchableOpacity>
-            <Image source={require('@/assets/images/statistical/botao_remover.png')} style={styles.icon} />
-          </TouchableOpacity>
-          {label === "Água" ? (
+          {label === 'Água' && (
             <TouchableOpacity onPress={openModal}>
               <Image source={require('@/assets/images/statistical/botao_verde.png')} style={styles.icon} />
             </TouchableOpacity>
-          ) : null}
+          )}
         </View>
         <Text style={styles.statValue}>{value}</Text>
       </View>
@@ -106,13 +119,7 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 14, color: '#555' },
   progressBarBackground: { height: 10, backgroundColor: '#e5e5e5', borderRadius: 5, overflow: 'hidden', marginTop: 8 },
   progressBar: { height: '100%', borderRadius: 5 },
-  metaValue: {
-  fontSize: 24,
-  fontWeight: 'bold',
-  marginBottom: 10,
-  color: '#333',
-},
-
+  metaValue: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333' },
 
   /* Modal */
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.6)' },

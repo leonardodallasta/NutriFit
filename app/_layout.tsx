@@ -65,8 +65,17 @@ function RootLayoutNav() {
         {/* Grupo de telas protegidas */}
         <Stack.Screen name="(tabs)" />
         
-        {/* Sua tela de modal */}
+        {/* Suas telas de modal */}
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        {/* NOVO: Tela para editar o perfil */}
+        <Stack.Screen 
+          name="edit-profile" 
+          options={{ 
+            presentation: 'modal', 
+            headerShown: true, 
+            title: "Editar Perfil" 
+          }} 
+        />
       </Stack>
     </ThemeProvider>
   );

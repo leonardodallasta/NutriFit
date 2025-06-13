@@ -1,8 +1,6 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-
-// 1. Importa o nosso "guardião" de rotas
 import { useProtectedRoute } from '../context/AuthContext';
 
 function TabBarIcon(props: {
@@ -26,7 +24,6 @@ export default function TabLayout() {
         name="metas"
         options={{
           title: 'Metas',
-          // AQUI ESTÁ A CORREÇÃO: troquei "list-check" por "list-alt"
           tabBarIcon: ({ color }) => <TabBarIcon name="list-alt" color={color} />,
         }}
       />

@@ -32,6 +32,7 @@ Clone o Repositório
 Abra seu terminal e execute os seguintes comandos para clonar o projeto e entrar na pasta:
 
 git clone https://github.com/leonardodallasta/NutriFit
+
 cd nutrifit
 
 Configure o Firebase

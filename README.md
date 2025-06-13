@@ -31,7 +31,7 @@ Variáveis de ambiente ANDROID_HOME e JAVA_HOME devidamente configuradas.
 Clone o Repositório
 Abra seu terminal e execute os seguintes comandos para clonar o projeto e entrar na pasta:
 
-git clone [https://github.com/SEU_USUARIO/nutrifit.git](https://github.com/leonardodallasta/NutriFit)
+git clone (https://github.com/leonardodallasta/NutriFit)](https://github.com/leonardodallasta/NutriFit)
 cd nutrifit
 
 Configure o Firebase
